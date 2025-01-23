@@ -143,8 +143,8 @@ int main(int argc, char *argv[])
     }
     printf("\n");
   }
-/*
-  AttrCacheEntry* x=AttrCacheTable::attrCache[2];
+
+  AttrCacheEntry* x=AttrCacheTable::attrCache[1];
   char str[10];
   while(x!=NULL)
   {
@@ -154,9 +154,10 @@ int main(int argc, char *argv[])
     printf("%d %d\n",x->recId.block,x->recId.slot);
     x=x->next;
   }
-  */
+  
 
 
+  return FrontendInterface::handleFrontend(argc, argv);
 
 
 

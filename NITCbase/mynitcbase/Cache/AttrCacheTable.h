@@ -39,12 +39,13 @@ class AttrCacheTable {
   static int setSearchIndex(int relId, int attrOffset, IndexId *searchIndex);
   static int resetSearchIndex(int relId, char attrName[ATTR_SIZE]);
   static int resetSearchIndex(int relId, int attrOffset);
+  static AttrCacheEntry *attrCache[MAX_OPEN];
 
 
  private:
   // field
 
-   static AttrCacheEntry *attrCache[MAX_OPEN];
+
 
   // methods
   static void recordToAttrCatEntry(union Attribute record[ATTRCAT_NO_ATTRS], AttrCatEntry *attrCatEntry);

@@ -26,12 +26,12 @@ int AttrCacheTable::getAttrCatEntry(int relId, int attrOffset, AttrCatEntry* att
 
   int j=0;
   AttrCacheEntry* entry = attrCache[relId];
-  while(entry!=NULL && j!=attrOffset)
+  while(entry!=nullptr && j!=attrOffset)
   {
     entry=entry->next;
     j++;
   }
-  if(j==attrOffset)
+  if(entry!=nullptr)
   {
     (*attrCatBuf)=entry->attrCatEntry;
     return SUCCESS;
@@ -78,9 +78,10 @@ int AttrCacheTable::getAttrCatEntry(int relId, char attrName[ATTR_SIZE], AttrCat
     {
       x=x->next;
     }
-    if(x!=NULL)
+    if(x!=nullptr)
     {
       (*attrCatBuf)=x->attrCatEntry;
+      return SUCCESS;
     }
 
   return E_ATTRNOTEXIST;
