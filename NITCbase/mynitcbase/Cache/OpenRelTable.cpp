@@ -86,7 +86,7 @@ for(int i=0;i<6;i++)
   relcat.getRecord(relattr,i);
   AttrCacheTable::recordToAttrCatEntry(relattr,&(x->attrCatEntry));
   x->recId.slot=i;
-  x->recId.block=RELCAT_BLOCK;
+  x->recId.block=ATTRCAT_BLOCK;
   x->next=nullptr;
   if(relprev==nullptr)
   {
@@ -289,3 +289,4 @@ OpenRelTable::~OpenRelTable()
   }
 
 }
+

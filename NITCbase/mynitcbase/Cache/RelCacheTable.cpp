@@ -83,7 +83,7 @@ int RelCacheTable::setSearchIndex(int relId, RecId* searchIndex)
     return E_RELNOTOPEN;
   }
 
-  relCache[relId]->recId=*searchIndex;
+  relCache[relId]->searchIndex=*searchIndex;
 
   return SUCCESS;
 }

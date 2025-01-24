@@ -143,13 +143,30 @@ int main(int argc, char *argv[])
     }
     printf("\n");
   }
+  RelCacheEntry *y=RelCacheTable::relCache[1];
+  RelCatEntry pp;
+  printf(" %s\n",y->relCatEntry.relName);
+  printf("%d ",y->relCatEntry.numAttrs);
+  printf("%d ",y->relCatEntry.numRecs);
+  printf("%d ",y->relCatEntry.firstBlk);
+  printf("%d ",y->relCatEntry.lastBlk);
+  printf("%d ",y->relCatEntry.numSlotsPerBlk);
+  printf("\n");
+  printf("%d ",y->dirty);
+  printf("%d ",y->recId.block);
+  printf("%d ",y->recId.slot);
+  printf("%d ",y->searchIndex.block);
+  printf("%d ",y->searchIndex.slot);
+  printf("\n");
 
-  AttrCacheEntry* x=AttrCacheTable::attrCache[1];
+
+  
+  AttrCacheEntry* x=AttrCacheTable::attrCache[0];
   char str[10];
   while(x!=NULL)
   {
     strcpy(str,x->attrCatEntry.attrName);
-    strcpy(str,x->attrCatEntry.relName);
+    //strcpy(str,x->attrCatEntry.relName);
     printf(" %s ",str);
     printf("%d %d\n",x->recId.block,x->recId.slot);
     x=x->next;
@@ -164,23 +181,4 @@ int main(int argc, char *argv[])
 
   return 0;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
