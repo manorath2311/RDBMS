@@ -147,9 +147,6 @@ int compareAttrs(union Attribute attr1, union Attribute attr2, int attrType)
     {
       return 1;
     }
-    else
-    {
-      return -1;
-    }
+    return -1;
 
 }

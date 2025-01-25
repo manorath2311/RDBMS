@@ -47,7 +47,11 @@ int Algebra::select(char srcRel[ATTR_SIZE], char targetRel[ATTR_SIZE], char attr
   AttrCatEntry attrCatEntry;
   // get the attribute catalog entry for attr, using AttrCacheTable::getAttrcatEntry()
   //    return E_ATTRNOTEXIST if it returns the error
-  AttrCacheTable::getAttrCatEntry(srcRelId,attr,&attrCatEntry);
+  int k=AttrCacheTable::getAttrCatEntry(srcRelId,attr,&attrCatEntry);
+  if(k==E_ATTRNOTEXIST)
+  {
+    return E_ATTRNOTEXIST;
+  }
 
 
   /*** Convert strVal (string) to an attribute of data type NUMBER or STRING ***/
@@ -105,17 +109,24 @@ int Algebra::select(char srcRel[ATTR_SIZE], char targetRel[ATTR_SIZE], char attr
       // get the record at searchRes using BlockBuffer.getRecord
       RecBuffer recBuffer(searchRes.block); //doubt
       
-      Attribute rec[6];
+      Attribute rec[relCatEntry.numAttrs];
       recBuffer.getRecord(rec,searchRes.slot);
-
-      // print the attribute values in the same format as above
-      printf(" %s |", rec[0].sVal);
-      printf(" %s |", rec[1].sVal);
-      printf(" %d |",(int)rec[2].nVal);
-      printf(" %d |", (int)rec[3].nVal);
-      printf(" %d |", (int)rec[4].nVal);
-      printf(" %d |", (int)rec[5].nVal);
+      printf("|");
+      for(int i=0;i<relCatEntry.numAttrs;i++)
+      {
+        AttrCatEntry abuf;
+        AttrCacheTable::getAttrCatEntry(srcRelId,i,&abuf);
+        if(abuf.attrType==NUMBER)
+        {
+          printf(" %d |",(int)rec[i].nVal);
+        }
+        else
+        {
+          printf(" %s |",rec[i].sVal);
+        }
+      }
       printf("\n");
+
 
     }
     else 

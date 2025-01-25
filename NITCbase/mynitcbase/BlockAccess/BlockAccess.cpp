@@ -50,14 +50,22 @@ RecId BlockAccess::linearSearch(int relId, char attrName[ATTR_SIZE], union Attri
     {
         /* create a RecBuffer object for block (use RecBuffer Constructor for
            existing block) */
-        RelCatEntry pop;
-        RelCacheTable::getRelCatEntry(relId,&pop);
-        Attribute reccordd[pop.numAttrs];
         RecBuffer rb(block);
-        rb.getRecord(reccordd,slot);
         HeadInfo head1;
         rb.getHeader(&head1);
+        RelCatEntry pop;
+         RelCacheTable::getRelCatEntry(relId,&pop);
+         
+         Attribute reccordd[head1.numAttrs];
+         rb.getRecord(reccordd,slot);
+        
+        
+       
+        
+       
+        
         unsigned char smap1[head1.numSlots];
+        rb.getSlotMap(smap1);
 
         // get the record with id (block, slot) using RecBuffer::getRecord()
         // get header of the block using RecBuffer::getHeader() function
@@ -127,14 +135,14 @@ RecId BlockAccess::linearSearch(int relId, char attrName[ATTR_SIZE], union Attri
             x.slot=slot;
             RelCacheTable::setSearchIndex(relId,&x);
 
-            return RecId{block,slot};
+            return {block,slot};
         }
 
         slot++;
     }
 
     // no record in the relation with Id relid satisfies the given condition
-    return RecId{-1, -1};
+    return {-1, -1};
 }
 
 

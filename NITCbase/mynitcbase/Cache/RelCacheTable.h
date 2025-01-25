@@ -33,11 +33,11 @@ class RelCacheTable {
   static int getSearchIndex(int relId, RecId *searchIndex);
   static int setSearchIndex(int relId, RecId *searchIndex);
   static int resetSearchIndex(int relId);
-  static RelCacheEntry *relCache[MAX_OPEN];
+
  private:
   // field
 
-
+  static RelCacheEntry *relCache[MAX_OPEN];
   // methods
   static void recordToRelCatEntry(union Attribute record[RELCAT_NO_ATTRS], RelCatEntry *relCatEntry);
   static void relCatEntryToRecord(RelCatEntry *relCatEntry, union Attribute record[RELCAT_NO_ATTRS]);

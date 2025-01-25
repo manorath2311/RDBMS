@@ -24,12 +24,11 @@ int AttrCacheTable::getAttrCatEntry(int relId, int attrOffset, AttrCatEntry* att
 
   // traverse the linked list of attribute cache entries
 
-  int j=0;
+ 
   AttrCacheEntry* entry = attrCache[relId];
-  while(entry!=nullptr && j!=attrOffset)
+  while(entry!=nullptr && entry->attrCatEntry.offset!=attrOffset)
   {
     entry=entry->next;
-    j++;
   }
   if(entry!=nullptr)
   {

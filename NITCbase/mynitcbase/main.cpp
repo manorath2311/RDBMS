@@ -126,51 +126,51 @@ int main(int argc, char *argv[])
     printf("\n");
   }
   */
-  struct RelCatEntry rce;
-  struct AttrCatEntry ace;
+  // struct RelCatEntry rce;
+  // struct AttrCatEntry ace;
 
-  for(int i=0;i<3;i++)
-  {
-    RelCacheTable::getRelCatEntry(i,&rce);
-    printf("Relation: %s\n",rce.relName);
-    int x=rce.numAttrs;
-    for(int j=0;j<x;j++)
-    {
-      AttrCacheTable::getAttrCatEntry(i,j,&ace);
-      char type[4];
-      strcpy(type,(ace.attrType==1)? "STR" : "NUM");
-      printf(" %s %s\n",ace.attrName,type);
-    }
-    printf("\n");
-  }
-  RelCacheEntry *y=RelCacheTable::relCache[1];
-  RelCatEntry pp;
-  printf(" %s\n",y->relCatEntry.relName);
-  printf("%d ",y->relCatEntry.numAttrs);
-  printf("%d ",y->relCatEntry.numRecs);
-  printf("%d ",y->relCatEntry.firstBlk);
-  printf("%d ",y->relCatEntry.lastBlk);
-  printf("%d ",y->relCatEntry.numSlotsPerBlk);
-  printf("\n");
-  printf("%d ",y->dirty);
-  printf("%d ",y->recId.block);
-  printf("%d ",y->recId.slot);
-  printf("%d ",y->searchIndex.block);
-  printf("%d ",y->searchIndex.slot);
-  printf("\n");
+  // for(int i=0;i<3;i++)
+  // {
+  //   RelCacheTable::getRelCatEntry(i,&rce);
+  //   printf("Relation: %s\n",rce.relName);
+  //   int x=rce.numAttrs;
+  //   for(int j=0;j<x;j++)
+  //   {
+  //     AttrCacheTable::getAttrCatEntry(i,j,&ace);
+  //     char type[4];
+  //     strcpy(type,(ace.attrType==1)? "STR" : "NUM");
+  //     printf(" %s %s\n",ace.attrName,type);
+  //   }
+  //   printf("\n");
+  // }
+  // RelCacheEntry *y=RelCacheTable::relCache[1];
+  // RelCatEntry pp;
+  // printf(" %s\n",y->relCatEntry.relName);
+  // printf("%d ",y->relCatEntry.numAttrs);
+  // printf("%d ",y->relCatEntry.numRecs);
+  // printf("%d ",y->relCatEntry.firstBlk);
+  // printf("%d ",y->relCatEntry.lastBlk);
+  // printf("%d ",y->relCatEntry.numSlotsPerBlk);
+  // printf("\n");
+  // printf("%d ",y->dirty);
+  // printf("%d ",y->recId.block);
+  // printf("%d ",y->recId.slot);
+  // printf("%d ",y->searchIndex.block);
+  // printf("%d ",y->searchIndex.slot);
+  // printf("\n");
 
 
   
-  AttrCacheEntry* x=AttrCacheTable::attrCache[0];
-  char str[10];
-  while(x!=NULL)
-  {
-    strcpy(str,x->attrCatEntry.attrName);
-    //strcpy(str,x->attrCatEntry.relName);
-    printf(" %s ",str);
-    printf("%d %d\n",x->recId.block,x->recId.slot);
-    x=x->next;
-  }
+  // AttrCacheEntry* x=AttrCacheTable::attrCache[2];
+  // char str[10];
+  // while(x!=NULL)
+  // {
+  //   strcpy(str,x->attrCatEntry.attrName);
+  //   //strcpy(str,x->attrCatEntry.relName);
+  //   printf(" %s ",str);
+  //   printf("%d %d\n",x->recId.block,x->recId.slot);
+  //   x=x->next;
+  // }
   
 
 
@@ -179,6 +179,6 @@ int main(int argc, char *argv[])
 
 
 
-  return 0;
+
 }
 
