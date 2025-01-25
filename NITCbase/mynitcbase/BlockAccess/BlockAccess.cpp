@@ -3,7 +3,7 @@
 #include <cstring>
 
 
-RecId BlockAccess::linearSearch(int relId, char attrName[ATTR_SIZE], union Attribute attrVal, int op) 
+RecId BlockAccess::linearSearch(int relId,char attrName[ATTR_SIZE], union Attribute attrVal, int op) 
 {
     // get the previous search index of the relation relId from the relation cache
     // (use RelCacheTable::getSearchIndex() function)
