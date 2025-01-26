@@ -67,62 +67,6 @@ OpenRelTable::OpenRelTable()
 
     }
    }
-  int j=2,bna,sna;
-    RecBuffer relCatBuffer(RELCAT_BLOCK);
-    HeadInfo relCatHeader;
-    relCatBuffer.getHeader(&relCatHeader);
-    for(int i=0;i<relCatHeader.numEntries;i++)
-    {
-        Attribute relCatRecord[RELCAT_NO_ATTRS];
-        relCatBuffer.getRecord(relCatRecord,i);
-    if(strcmp(relCatRecord[RELCAT_REL_NAME_INDEX].sVal,"Students")==0)
-    {
-        RelCacheEntry relCacheEntry;
-        RelCacheTable::recordToRelCatEntry(relCatRecord,&relCacheEntry.relCatEntry);
-       relCacheEntry.dirty=false;
-        relCacheEntry.recId.block=RELCAT_BLOCK;
-        relCacheEntry.recId.slot=i;
-        RelCacheTable::relCache[j]=(RelCacheEntry*)malloc(sizeof(RelCacheEntry));
-        *(RelCacheTable::relCache[j])=relCacheEntry;
-    break;
-    }
-    }
-    RecBuffer attrCatBuffer(ATTRCAT_BLOCK);
-    HeadInfo attrCatHeader;
-    attrCatBuffer.getHeader(&attrCatHeader);
-    int bn=ATTRCAT_BLOCK;
-    for(int i=0;i<attrCatHeader.numEntries;i++)
-    {
-        Attribute attrCatRecord[RELCAT_NO_ATTRS];
-        attrCatBuffer.getRecord(attrCatRecord,i);
-        if(strcmp(attrCatRecord[ATTRCAT_REL_NAME_INDEX].sVal,"Students")==0)
-        {
-            AttrCacheEntry attrCacheEntry;
-        AttrCacheTable::recordToAttrCatEntry(attrCatRecord,&attrCacheEntry.attrCatEntry);
-        attrCacheEntry.dirty=false;
-        attrCacheEntry.recId.block=bn;
-        attrCacheEntry.recId.slot=i;
-        attrCacheEntry.next=nullptr;
-        AttrCacheEntry *attrCacheEntry2=(AttrCacheEntry*)malloc(sizeof(AttrCacheEntry));
-        *attrCacheEntry2=attrCacheEntry;
-        attrCacheEntry2->next=AttrCacheTable::attrCache[j];
-        AttrCacheTable::attrCache[j]=attrCacheEntry2;
-        }
-        if(i==19&&attrCatHeader.numEntries==20)
-        {
-            RecBuffer attrCatBuffer2(attrCatHeader.rblock);
-            HeadInfo attrCatHeader2;
-            attrCatBuffer2.getHeader(&attrCatHeader2);
-            if(attrCatHeader2.numEntries!=0)
-            {
-                i=-1;
-                bn=attrCatHeader.rblock;
-                attrCatBuffer=attrCatBuffer2;
-                attrCatHeader=attrCatHeader2;
-            }
-
-        }
-    }
 
   // in the tableMetaInfo array
   //   set free = false for RELCAT_RELID and ATTRCAT_RELID
@@ -148,7 +92,9 @@ OpenRelTable::~OpenRelTable()
   // free the memory allocated for rel-id 0 and 1 in the caches
   free(RelCacheTable::relCache[0]);
   free(RelCacheTable::relCache[1]);
+  
 }
+
 
 
 int OpenRelTable::closeRel(int relId) 
