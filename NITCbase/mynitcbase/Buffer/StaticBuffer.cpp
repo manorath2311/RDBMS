@@ -1,12 +1,19 @@
 #include "StaticBuffer.h"
+#include<string.h>
 // the declarations for this class can be found at "StaticBuffer.h"
 
 unsigned char StaticBuffer::blocks[BUFFER_CAPACITY][BLOCK_SIZE];
 struct BufferMetaInfo StaticBuffer::metainfo[BUFFER_CAPACITY];
+unsigned char StaticBuffer::blockAllocMap[DISK_BLOCKS];
 
 StaticBuffer::StaticBuffer() 
 {
-
+  unsigned char buffer[BLOCK_SIZE];
+  for(int i=0;i<4;i++)
+  {
+   Disk::readBlock(buffer,i);
+    memcpy(blockAllocMap+i*BLOCK_SIZE,buffer,BLOCK_SIZE);
+  }
   for (int i=0; i<BUFFER_CAPACITY; i++) 
   {
     // set metainfo[bufferindex] with the following values
@@ -22,14 +29,22 @@ StaticBuffer::StaticBuffer()
   }
 }
 
-// write back all modified blocks on system exit
+
 StaticBuffer::~StaticBuffer() 
 {
+  // copy blockAllocMap blocks from buffer to disk(using writeblock() of disk)
+  unsigned char buffer[BLOCK_SIZE];
+  for(int i=0;i<4;i++)
+  {
+    memcpy(buffer,blockAllocMap+i*BLOCK_SIZE,BLOCK_SIZE);
+    Disk::writeBlock(buffer,i);
+  }
+
   /*iterate through all the buffer blocks,
-    write back blocks with metainfo as free=false,dirty=true
-    using Disk::writeBlock()
-    */
-  for(int i=0;i<BUFFER_CAPACITY;i++)
+    write back blocks with metainfo as free:false,dirty:true
+    (you did this already)
+  */
+ for(int i=0;i<BUFFER_CAPACITY;i++)
   {
     if(metainfo[i].free==false && metainfo[i].dirty==true)
     {
@@ -37,6 +52,9 @@ StaticBuffer::~StaticBuffer()
     }
   }
 }
+
+
+
 
 /*
 At this stage, we are not writing back from the buffer to the disk since we are
