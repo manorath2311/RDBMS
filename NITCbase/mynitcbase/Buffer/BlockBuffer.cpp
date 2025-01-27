@@ -166,6 +166,42 @@ int RecBuffer::getSlotMap(unsigned char *slotMap)
 
   return SUCCESS;
 }
+int RecBuffer::setSlotMap(unsigned char *slotMap) 
+{
+  
+  unsigned char *bufferPtr;
+
+  int ret = loadBlockAndGetBufferPtr(&bufferPtr);
+  if (ret != SUCCESS) 
+  {
+    return ret;
+  }
+
+  struct HeadInfo head;
+  // get the header of the block using getHeader() function
+  this->getHeader(&head);
+
+
+  int numSlots = head.numSlots;/* number of slots in block from header */
+
+    // the slotmap starts at bufferPtr + HEADER_SIZE. Copy the contents of the
+    // argument `slotMap` to the buffer replacing the existing slotmap.
+    // Note that size of slotmap is `numSlots`
+    unsigned char *slotMapInBuffer = bufferPtr + HEADER_SIZE;
+
+
+    // update dirty bit using StaticBuffer::setDirtyBit
+    // if setDirtyBit failed, return the value returned by the call
+    memcpy(slotMapInBuffer,slotMap,numSlots);
+    int k=StaticBuffer::setDirtyBit(this->blockNum);
+    if(k!=SUCCESS)
+    {
+      return k;
+    }
+    return SUCCESS;
+
+    // return SUCCESS
+}
 
 int compareAttrs(union Attribute attr1, union Attribute attr2, int attrType)
 {
@@ -407,4 +443,9 @@ BlockBuffer::BlockBuffer(char blockType)
     // (The caller must check if the constructor allocatted block successfully
     // by checking the value of block number field.)
 
+}
+int BlockBuffer::getBlockNum(){
+
+    //return corresponding block number.
+    return this->blockNum;
 }

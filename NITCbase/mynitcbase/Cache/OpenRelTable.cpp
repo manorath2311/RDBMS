@@ -262,40 +262,7 @@ int OpenRelTable::openRel(char relName[ATTR_SIZE])
 
   return relId;
 }
-int OpenRelTable::closeRel(int relId) 
-{
-  if (relId == RELCAT_RELID || relId == ATTRCAT_RELID) 
-  {
-    return E_NOTPERMITTED;
-  }
 
-  if (relId < 0 || relId >= MAX_OPEN) 
-  {
-    return E_OUTOFBOUND;
-  }
-
-  if (tableMetaInfo[relId].free) 
-  {
-    return E_RELNOTOPEN;
-  }
-
-  // free the memory allocated in the relation and attribute caches which was
-  // allocated in the OpenRelTable::openRel() function
-
-
-  // update `tableMetaInfo` to set `relId` as a free slot
-  // update `relCache` and `attrCache` to set the entry at `relId` to nullptr
-  free(RelCacheTable::relCache[relId]);
-  free(AttrCacheTable::attrCache[relId]);
-
-  
-  tableMetaInfo[relId].free=true;
-  RelCacheTable::relCache[relId] = nullptr;
-  AttrCacheTable::attrCache[relId] = nullptr;
-
-
-  return SUCCESS;
-}
 int OpenRelTable::closeRel(int relId) 
 {
  if (relId == RELCAT_RELID || relId == ATTRCAT_RELID) 
