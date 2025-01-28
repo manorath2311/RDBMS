@@ -122,6 +122,14 @@ int OpenRelTable::getRelId(char relName[ATTR_SIZE])
 
   // if found return the relation id, else indicate that the relation do not
   // have an entry in the Open Relation Table.
+  if(strcmp(relName,"RELATIONCAT")==0)
+  {
+    return RELCAT_RELID;
+  }
+  if(strcmp(relName,"ATTRIBUTECAT")==0)
+  {
+    return ATTRCAT_RELID;
+  }
 
    for(int i=0;i<MAX_OPEN;i++)
    {
