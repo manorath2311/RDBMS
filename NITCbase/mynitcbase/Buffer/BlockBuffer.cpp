@@ -21,6 +21,52 @@ RecBuffer::RecBuffer() : BlockBuffer('R'){}
 Used to get the header of the block into the location pointed to by `head`
 NOTE: this function expects the caller to allocate memory for `head`
 */
+BlockBuffer::BlockBuffer(char blockType)
+{
+    // allocate a block on the disk and a buffer in memory to hold the new block of
+    // given type using getFreeBlock function and get the return error codes if any.
+    int blockTypeNum;
+
+    if (blockType == 'R')
+    {
+        blockTypeNum = REC;
+    }
+    else if (blockType == 'I')
+    {
+        blockTypeNum = IND_INTERNAL;
+    }
+    else if (blockType == 'L')
+    {
+        blockTypeNum = IND_LEAF;
+    }
+    else
+    {
+        blockTypeNum = UNUSED_BLK;
+    }
+    int blockNum = getFreeBlock(blockTypeNum);
+
+    // set the blockNum field of the object to that of the allocated block
+    // number if the method returned a valid block number,
+    // otherwise set the error code returned as the block number.
+    if(blockNum>=0 && blockNum<DISK_BLOCKS)
+    {
+      this->blockNum=blockNum;
+    }
+    else
+    {
+        return;
+    }
+
+
+    // (The caller must check if the constructor allocatted block successfully
+    // by checking the value of block number field.)
+
+}
+int BlockBuffer::getBlockNum(){
+
+    //return corresponding block number.
+    return this->blockNum;
+}
 int BlockBuffer::getHeader(struct HeadInfo *head)
 {
 
@@ -403,49 +449,44 @@ int BlockBuffer::getFreeBlock(int blockType)
 
     // return block number of the free block.
 }
-BlockBuffer::BlockBuffer(char blockType)
+void BlockBuffer::releaseBlock()
 {
-    // allocate a block on the disk and a buffer in memory to hold the new block of
-    // given type using getFreeBlock function and get the return error codes if any.
-    int blockTypeNum;
 
-    if (blockType == 'R')
+    // if blockNum is INVALID_BLOCKNUM (-1), or it is invalidated already, do nothing
+    if(this->blockNum<0 || this->blockNum>=DISK_BLOCKS)
     {
-        blockTypeNum = REC;
+      return;
     }
-    else if (blockType == 'I')
+    if(this->blockNum==INVALID_BLOCKNUM)
     {
-        blockTypeNum = IND_INTERNAL;
+      return;
     }
-    else if (blockType == 'L')
-    {
-        blockTypeNum = IND_LEAF;
-    }
+    
+
     else
     {
-        blockTypeNum = UNUSED_BLK;
+        /* get the buffer number of the buffer assigned to the block
+           using StaticBuffer::getBufferNum().
+           (this function return E_BLOCKNOTINBUFFER if the block is not
+           currently loaded in the buffer)
+            */
+        int bufferNum = StaticBuffer::getBufferNum(this->blockNum); 
+
+        // if the block is present in the buffer, free the buffer
+        // by setting the free flag of its StaticBuffer::tableMetaInfo entry
+        // to true.
+        if(bufferNum!=E_BLOCKNOTINBUFFER)
+        {
+          StaticBuffer::metainfo[bufferNum].free=true;
+        }
+
+        // free the block in disk by setting the data type of the entry
+        // corresponding to the block number in StaticBuffer::blockAllocMap
+        // to UNUSED_BLK.
+        StaticBuffer::blockAllocMap[this->blockNum]=UNUSED_BLK;
+
+
+        // set the object's blockNum to INVALID_BLOCK (-1)
+        this->blockNum=INVALID_BLOCKNUM;
     }
-    int blockNum = getFreeBlock(blockTypeNum);
-
-    // set the blockNum field of the object to that of the allocated block
-    // number if the method returned a valid block number,
-    // otherwise set the error code returned as the block number.
-    if(blockNum>=0 && blockNum<DISK_BLOCKS)
-    {
-      this->blockNum=blockNum;
-    }
-    else
-    {
-        return;
-    }
-
-
-    // (The caller must check if the constructor allocatted block successfully
-    // by checking the value of block number field.)
-
-}
-int BlockBuffer::getBlockNum(){
-
-    //return corresponding block number.
-    return this->blockNum;
 }
