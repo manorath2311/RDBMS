@@ -54,7 +54,7 @@ int Algebra::select(char srcRel[ATTR_SIZE], char targetRel[ATTR_SIZE], char attr
     int ret = AttrCacheTable::getAttrCatEntry(srcRelId, attr, &attrCatEntry);
     if (ret != SUCCESS)
     {
-        return E_ATTRNOTEXIST;
+        return ret;
     }
 
 
@@ -83,7 +83,11 @@ int Algebra::select(char srcRel[ATTR_SIZE], char targetRel[ATTR_SIZE], char attr
     // Prepare arguments for createRel() in the following way:
     // get RelcatEntry of srcRel using RelCacheTable::getRelCatEntry()
     RelCatEntry relCatEntry;
-    RelCacheTable::getRelCatEntry(srcRelId, &relCatEntry);
+    int x=RelCacheTable::getRelCatEntry(srcRelId,&relCatEntry);
+    if(x!=SUCCESS)
+    {
+        return x;
+    }
 
     int src_nAttrs = relCatEntry.numAttrs/* the no. of attributes present in src relation */ ;
 
@@ -103,7 +107,7 @@ int Algebra::select(char srcRel[ATTR_SIZE], char targetRel[ATTR_SIZE], char attr
     for (int i = 0; i < src_nAttrs; i++)
     {
         AttrCatEntry attrCatEntry;
-        AttrCacheTable::getAttrCatEntry(srcRelId, i, &attrCatEntry);
+        AttrCacheTable::getAttrCatEntry(srcRelId,i,&attrCatEntry);
         strcpy(attr_names[i], attrCatEntry.attrName);
         attr_types[i] = attrCatEntry.attrType;
     }
@@ -112,10 +116,10 @@ int Algebra::select(char srcRel[ATTR_SIZE], char targetRel[ATTR_SIZE], char attr
     /* Create the relation for target relation by calling Schema::createRel()
        by providing appropriate arguments */
     // if the createRel returns an error code, then return that value.
-    int targetRelId = Schema::createRel(targetRel,src_nAttrs,attr_names,attr_types);
-    if (targetRelId < 0)
+     ret = Schema::createRel(targetRel,src_nAttrs,attr_names,attr_types);
+    if (ret !=SUCCESS)
     {
-        return targetRelId;
+        return ret;
     }
 
     /* Open the newly created target relation by calling OpenRelTable::openRel()
@@ -124,19 +128,19 @@ int Algebra::select(char srcRel[ATTR_SIZE], char targetRel[ATTR_SIZE], char attr
 
     /* If opening fails, delete the target relation by calling Schema::deleteRel()
        and return the error value returned from openRel() */
-    ret = OpenRelTable::openRel(targetRel);
-    if (ret != SUCCESS)
+    int targetRelId = OpenRelTable::openRel(targetRel);
+    if (targetRelId <0 || targetRelId>=MAX_OPEN)
     {
         Schema::deleteRel(targetRel);
-        return ret;
+        return targetRelId;
     }
+
 
     /*** Selecting and inserting records into the target relation ***/
 
     /* Before calling the search function, reset the search to start from the
        first using RelCacheTable::resetSearchIndex() 
        */
-    RelCacheTable::resetSearchIndex(srcRelId);
 
 
 
@@ -159,10 +163,10 @@ int Algebra::select(char srcRel[ATTR_SIZE], char targetRel[ATTR_SIZE], char attr
     // read every record that satisfies the condition by repeatedly calling
     // BlockAccess::search() until there are no more records to be read
 
-    while (BlockAccess::search(srcRelId, record, attr, attrVal, op)!= E_NOTFOUND) 
+    while (BlockAccess::search(srcRelId,record,attr,attrVal,op)==SUCCESS) 
     {
 
-        int ret = BlockAccess::insert(targetRelId, record);
+         ret = BlockAccess::insert(targetRelId,record);
         if (ret != SUCCESS)
         {
             Schema::closeRel(targetRel);
@@ -180,12 +184,13 @@ int Algebra::select(char srcRel[ATTR_SIZE], char targetRel[ATTR_SIZE], char attr
     }
 
     // Close the targetRel by calling closeRel() method of schema layer
-    Schema::closeRel(targetRel);
+    int m=Schema::closeRel(targetRel);
 
     // return SUCCESS.
-    return SUCCESS;
+    return m;
 }
 
+//hi
 // will return if a string can be parsed as a floating point number
 int Algebra::insert(char relName[ATTR_SIZE], int nAttrs, char record[][ATTR_SIZE])
 {
@@ -313,24 +318,25 @@ int Algebra::project(char srcRel[ATTR_SIZE], char targetRel[ATTR_SIZE])
 
     // Create a relation for target relation by calling Schema::createRel()
     
-    int targetRelId = Schema::createRel(targetRel,numAttrs,attrNames,attrTypes);
+    int targetRet= Schema::createRel(targetRel,numAttrs,attrNames,attrTypes);
 
     // if the createRel returns an error code, then return that value.
-    if(targetRelId < 0)
+    if(targetRet!=SUCCESS)
     {
-        return targetRelId;
+        return targetRet;
     }
+    
 
     // Open the newly created target relation by calling OpenRelTable::openRel()
     // and get the target relid
-    int ret = OpenRelTable::openRel(targetRel);
+    int targetRelId = OpenRelTable::openRel(targetRel);
 
     // If opening fails, delete the target relation by calling Schema::deleteRel() of
     // return the error value returned from openRel().
-    if(ret != SUCCESS)
+    if(targetRelId<0 || targetRelId>=MAX_OPEN)
     {
         Schema::deleteRel(targetRel);
-        return ret;
+        return targetRelId;
     }
 
 
@@ -344,12 +350,12 @@ int Algebra::project(char srcRel[ATTR_SIZE], char targetRel[ATTR_SIZE])
     Attribute record[numAttrs];
 
 
-    while (BlockAccess::project(srcRelId,record)!= E_NOTFOUND)
+    while (BlockAccess::project(srcRelId,record)==SUCCESS)
     {
         // record will contain the next record
 
         // ret = BlockAccess::insert(targetRelId, proj_record);
-        int ret = BlockAccess::insert(targetRelId, record);
+        int ret = BlockAccess::insert(targetRelId,record);
 
         if (ret!=SUCCESS) 
         {
@@ -443,7 +449,7 @@ int Algebra::project(char srcRel[ATTR_SIZE], char targetRel[ATTR_SIZE], int tar_
 
     // If opening fails, delete the target relation by calling Schema::deleteRel()
     // and return the error value from openRel()
-    if(targetRelId!=SUCCESS)
+    if(targetRelId<0 || targetRelId>=MAX_OPEN)
     {
         Schema::deleteRel(targetRel);
         return targetRelId;
@@ -458,7 +464,7 @@ int Algebra::project(char srcRel[ATTR_SIZE], char targetRel[ATTR_SIZE], int tar_
 
     Attribute record[src_nAttrs];
 
-    while (BlockAccess::project(srcRelId,record) ==SUCCESS) 
+    while(BlockAccess::project(srcRelId,record)==SUCCESS) 
     {
         // the variable `record` will contain the next record
 
