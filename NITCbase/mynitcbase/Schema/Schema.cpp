@@ -1,3 +1,4 @@
+
 #include "Schema.h"
 
 #include <cmath>
@@ -229,7 +230,7 @@ int Schema::deleteRel(char *relName)
        if the BlockBuffer was initialized with an invalid block number.
     */
 }
-int createIndex(char relName[ATTR_SIZE],char attrName[ATTR_SIZE])
+int Schema::createIndex(char relName[ATTR_SIZE],char attrName[ATTR_SIZE])
 {
     // if the relName is either Relation Catalog or Attribute Catalog,
         // return E_NOTPERMITTED
@@ -278,7 +279,7 @@ int Schema::dropIndex(char *relName, char *attrName)
 
     // get the attribute catalog entry corresponding to the attribute
     // using AttrCacheTable::getAttrCatEntry()
-    Attribute attrCatEntry;
+    AttrCatEntry attrCatEntry;
     int retVal=AttrCacheTable::getAttrCatEntry(relId,attrName,&attrCatEntry);
     if(retVal == E_ATTRNOTEXIST)
     {

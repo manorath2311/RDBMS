@@ -37,15 +37,15 @@ int Frontend::alter_table_rename_column(char relname[ATTR_SIZE], char attrname_f
   return Schema::renameAttr(relname,attrname_from,attrname_to);
 }
 
-int Frontend::create_index(char relname[ATTR_SIZE], char attrname[ATTR_SIZE]) {
-  // Schema::createIndex
-  // Call createIndex() method of the Schema Layer with correct arguments
-  int x=Schema::createIndex(relname, attrname);
 
+int Frontend::create_index(char relname[ATTR_SIZE], char attrname[ATTR_SIZE])
+{
+
+  int x=Schema::createIndex(relname, attrname);
   return x;
 }
-
-int Frontend::drop_index(char relname[ATTR_SIZE], char attrname[ATTR_SIZE]) {
+int Frontend::drop_index(char relname[ATTR_SIZE], char attrname[ATTR_SIZE]) 
+{
   // Schema::dropIndex
   int x=Schema::dropIndex(relname, attrname);
   return x;

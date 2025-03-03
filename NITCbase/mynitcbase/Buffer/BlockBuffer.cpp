@@ -582,10 +582,7 @@ int IndLeaf::getEntry(void *ptr, int indexNum)
   // return SUCCESS
   return SUCCESS;
 }
-int IndInternal::setEntry(void *ptr, int indexNum) 
-{
-  return 0;
-}
+
 
 int IndLeaf::setEntry(void *ptr, int indexNum) 
 {
