@@ -492,3 +492,216 @@ int Algebra::project(char srcRel[ATTR_SIZE], char targetRel[ATTR_SIZE], int tar_
     // return SUCCESS.
     return SUCCESS;
 }
+int Algebra::join(char srcRelation1[ATTR_SIZE], char srcRelation2[ATTR_SIZE], char targetRelation[ATTR_SIZE], char attribute1[ATTR_SIZE], char attribute2[ATTR_SIZE]) 
+{
+
+    // get the srcRelation1's rel-id using OpenRelTable::getRelId() method
+    int relid1=OpenRelTable::getRelId(srcRelation1);
+    
+
+    // get the srcRelation2's rel-id using OpenRelTable::getRelId() method
+    int relid2=OpenRelTable::getRelId(srcRelation2);
+
+    // if either of the two source relations is not open
+    //     return E_RELNOTOPEN
+    if(relid1==E_RELNOTOPEN || relid2==E_RELNOTOPEN)
+    {
+        return E_RELNOTOPEN;
+    }
+
+    AttrCatEntry attrCatEntry1, attrCatEntry2;
+    // get the attribute catalog entries for the following from the attribute cache
+    // (using AttrCacheTable::getAttrCatEntry())
+    // - attrCatEntry1 = attribute1 of srcRelation1
+    // - attrCatEntry2 = attribute2 of srcRelation2
+    int ret1=AttrCacheTable::getAttrCatEntry(relid1,attribute1,&attrCatEntry1);
+    int ret2=AttrCacheTable::getAttrCatEntry(relid2,attribute2,&attrCatEntry2);
+
+
+    // if attribute1 is not present in srcRelation1 or attribute2 is not
+    // present in srcRelation2 (getAttrCatEntry() returned E_ATTRNOTEXIST)
+    //     return E_ATTRNOTEXIST.
+    if(ret1==E_ATTRNOTEXIST || ret2==E_ATTRNOTEXIST)
+    {
+        return E_ATTRNOTEXIST;
+    }
+
+    // if attribute1 and attribute2 are of different types return E_ATTRTYPEMISMATCH
+    if(attrCatEntry1.attrType!=attrCatEntry2.attrType)
+    {
+        return E_ATTRTYPEMISMATCH;
+    }
+
+    // iterate through all the attributes in both the source relations and check if
+    // there are any other pair of attributes other than join attributes
+    // (i.e. attribute1 and attribute2) with duplicate names in srcRelation1 and
+    // srcRelation2 (use AttrCacheTable::getAttrCatEntry())
+    // If yes, return E_DUPLICATEATTR
+    RelCatEntry relcat1;
+    RelCatEntry relcat2;
+    int p1=RelCacheTable::getRelCatEntry(relid1,&relcat1);
+    int p2=RelCacheTable::getRelCatEntry(relid2,&relcat2);
+    if(p1!=SUCCESS )
+    {
+        return p1;
+    }
+    if(p2!=SUCCESS)
+    {
+        return p2;
+    }
+    for(int i=0;i<relcat1.numAttrs;i++)
+    {
+        AttrCatEntry attr1;
+        AttrCacheTable::getAttrCatEntry(relid1,i,&attr1);
+        for(int j=0;j<relcat2.numAttrs;j++)
+        {
+            AttrCatEntry attr2;
+            AttrCacheTable::getAttrCatEntry(relid2,j,&attr2);
+            if(i==attrCatEntry1.offset && j==attrCatEntry2.offset)
+            {
+                continue;
+            }
+            if(strcmp(attr1.attrName,attr2.attrName)==0)
+            {
+                return E_DUPLICATEATTR;
+            }
+        }
+    }
+
+    // get the relation catalog entries for the relations from the relation cache
+    // (use RelCacheTable::getRelCatEntry() function)
+
+    int numOfAttributes1 = relcat1.numAttrs/* number of attributes in srcRelation1 */;
+    int numOfAttributes2 = relcat2.numAttrs/* number of attributes in srcRelation2 */;
+
+    // if rel2 does not have an index on attr2
+    //     create it using BPlusTree:bPlusCreate()
+    //     if call fails, return the appropriate error code
+    //     (if your implementation is correct, the only error code that will
+    //      be returned here is E_DISKFULL)
+    if(attrCatEntry2.rootBlock==-1)
+    {
+        int ret=BPlusTree::bPlusCreate(relid2,attribute2);
+        if(ret!=SUCCESS)
+        {
+            return ret;
+        }
+    }
+
+    int numOfAttributesInTarget = numOfAttributes1 + numOfAttributes2 - 1;
+    // Note: The target relation has number of attributes one less than
+    // nAttrs1+nAttrs2 (Why?)
+
+    // declare the following arrays to store the details of the target relation
+    char targetRelAttrNames[numOfAttributesInTarget][ATTR_SIZE];
+    int targetRelAttrTypes[numOfAttributesInTarget];
+
+    // iterate through all the attributes in both the source relations and
+    // update targetRelAttrNames[],targetRelAttrTypes[] arrays excluding attribute2
+    // in srcRelation2 (use AttrCacheTable::getAttrCatEntry())
+    int cnt=0;
+    for(int i=0;i<numOfAttributes1;i++)
+    {
+        AttrCatEntry attrCatBuff1;
+        AttrCacheTable::getAttrCatEntry(relid1,i,&attrCatBuff1);
+        strcpy(targetRelAttrNames[cnt],attrCatBuff1.attrName);
+        targetRelAttrTypes[cnt]=attrCatBuff1.attrType;
+        cnt++;
+    }
+    for(int i=0;i<numOfAttributes2;i++)
+    {
+        AttrCatEntry attrCatBuff2;
+        AttrCacheTable::getAttrCatEntry(relid2,i,&attrCatBuff2);
+        if(attrCatBuff2.offset==attrCatEntry2.offset)
+        {
+            continue;
+        }
+        strcpy(targetRelAttrNames[cnt],attrCatBuff2.attrName);
+        targetRelAttrTypes[cnt]=attrCatBuff2.attrType;
+        cnt++;
+    }
+
+    // create the target relation using the Schema::createRel() function
+    int ret=Schema::createRel(targetRelation,numOfAttributesInTarget,targetRelAttrNames,targetRelAttrTypes);
+    if(ret!=SUCCESS)
+    {
+        return ret;
+    }
+
+    // if createRel() returns an error, return that error
+
+    // Open the targetRelation using OpenRelTable::openRel()
+    int targetRelId=OpenRelTable::openRel(targetRelation);
+
+
+    // if openRel() fails (No free entries left in the Open Relation Table)
+    if(targetRelId<0 || targetRelId>=MAX_OPEN)
+    {
+        Schema::deleteRel(targetRelation);
+        return E_CACHEFULL;
+    }
+
+    Attribute record1[numOfAttributes1];
+    Attribute record2[numOfAttributes2];
+    Attribute targetRecord[numOfAttributesInTarget];
+
+    RelCacheTable::resetSearchIndex(relid1);
+    AttrCacheTable::resetSearchIndex(relid1,attribute1);
+
+    // this loop is to get every record of the srcRelation1 one by one
+    while (BlockAccess::project(relid1, record1) == SUCCESS) 
+    {
+
+        // reset the search index of `srcRelation2` in the relation cache
+        // using RelCacheTable::resetSearchIndex()
+        RelCacheTable::resetSearchIndex(relid2);
+
+        // reset the search index of `attribute2` in the attribute cache
+        // using AttrCacheTable::resetSearchIndex()
+        AttrCacheTable::resetSearchIndex(relid2, attribute2);
+
+        // this loop is to get every record of the srcRelation2 which satisfies
+        //the following condition:
+        // record1.attribute1 = record2.attribute2 (i.e. Equi-Join condition)
+        while (BlockAccess::search(relid2, record2, attribute2, record1[attrCatEntry1.offset], EQ) == SUCCESS ) 
+        {
+
+            // copy srcRelation1's and srcRelation2's attribute values(except
+            // for attribute2 in rel2) from record1 and record2 to targetRecord
+            int ind = 0;
+            for (int i = 0; i < numOfAttributes1; i++) 
+            {
+                targetRecord[ind] = record1[i];
+                ind++;
+            }
+            for (int i = 0; i < numOfAttributes2; i++) 
+            {
+                if (i == attrCatEntry2.offset) 
+                {
+                    continue;
+                }
+                targetRecord[ind] = record2[i];
+                ind++;
+            }
+
+            // insert the current record into the target relation by calling
+            // BlockAccess::insert()
+            int ret = BlockAccess::insert(targetRelId,targetRecord);
+
+            if(ret!=SUCCESS) 
+            {
+
+                // close the target relation by calling OpenRelTable::closeRel()
+                // delete targetRelation (by calling Schema::deleteRel())
+                OpenRelTable::closeRel(targetRelId);
+                Schema::deleteRel(targetRelation);
+                return ret;
+
+            }
+        }
+    }
+
+    // close the target relation by calling OpenRelTable::closeRel()
+    int p=OpenRelTable::closeRel(targetRelId);
+    return p;
+}
