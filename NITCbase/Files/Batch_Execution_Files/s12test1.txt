@@ -1,0 +1,14 @@
+create table Events(id NUM, title STR, location STR);
+create table Locations(name STR, capacity NUM);
+create table Participants(regNo NUM, event STR);
+open table Events
+open table Locations
+open table Participants
+insert into Events values from events.csv
+insert into Locations values from locations.csv
+insert into Participants values from participants.csv
+select name from Locations into EventLocations
+select * from Participants join Events into people where Participants.event=Events.title;
+open table people;
+select regNo,event from people into AudiPeople where location=Audi;
+echo------------Q1 done--------------------

@@ -1,0 +1,11 @@
+create table Organizers(name STR, eventId NUM);
+open table Organizers
+insert into Organizers values from organizers.csv
+open table Participants
+select * from Participants join Events into P1 where Participants.event=Events.title;
+open table P1;
+select regNo,event,name from Organizers join P1 into org_info where Organizers.eventId=P1.id;
+echo----------part1 done-------------
+open table org_info
+select * from org_info into thomas_events where name=Thomas;
+echo----------part2 done-------------
